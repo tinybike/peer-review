@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+{% block page %}<script>window.page = "submitted";</script>{% endblock %}
+{% block body %}
+  <div class="vertical-spacer-30"></div>
+  <div class="row">
+    <div class="large-12 columns">      
+      <h4>Progress report for {{ session.user }} submitted!</h4>
+    </div>
+  </div>
+{% endblock %}
