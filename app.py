@@ -4,6 +4,8 @@ peer review app
 
 """
 from __future__ import division
+from gevent import monkey
+monkey.patch_all()
 try:
     from psycopg2cffi import compat
     compat.register()
@@ -289,37 +291,6 @@ def register():
 # Login #
 #########
 
-@app.route('/review', methods=['GET', 'POST'])
-def review():
-    if request.method == 'GET':
-        return render_template('review.html')
-    return render_template('review.html')
-
-@app.route('/report', methods=['GET', 'POST'])
-def report():
-    if request.method == 'GET':
-        return render_template('report.html')
-    report_id = None
-    with cursor() as cur:
-        params = {
-            'user_id': session['user_id'],
-            'report': request.form['report-text'],
-        }
-        query = (
-            "INSERT INTO reports (user_id, report) VALUES "
-            "(%(user_id)s, %(report)s) "
-            "RETURNING report_id"
-        )
-        cur.execute(query, params)
-        print(report_id)
-        if report_id is not None:
-            return redirect(url_for('submitted'))
-    return render_template('report.html')
-
-@app.route('/submitted')
-def submitted():
-    render_template('submitted.html')
-
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'GET':
@@ -403,11 +374,57 @@ def upload_file():
     </form>
     '''
 
+#############
+# Reviewing #
+#############
+
+@socketio.on('get-dyff-balance', namespace='/socket.io/')
+def get_dyff_balance():
+    balance = None
+    if 'user' in session:
+        dyffs_query = "SELECT balance FROM dyffs WHERE username = %s"
+        with db.cursor_context() as cur:
+            cur.execute(dyffs_query, (session['user'],))
+            for row in cur:
+                balance = float(row[0])
+    emit('dyff-balance', {'balance': balance})
+
+@app.route('/review', methods=['GET', 'POST'])
+def review():
+    if request.method == 'GET':
+        return render_template('review.html')
+    return render_template('review.html')
+
+@app.route('/report', methods=['GET', 'POST'])
+def report():
+    if request.method == 'GET':
+        return render_template('report.html')
+    report_id = None
+    with cursor() as cur:
+        params = {
+            'user_id': session['user_id'],
+            'report': request.form['report-text'],
+        }
+        query = (
+            "INSERT INTO reports (user_id, report) VALUES "
+            "(%(user_id)s, %(report)s) "
+            "RETURNING report_id"
+        )
+        cur.execute(query, params)
+        print(report_id)
+        if report_id is not None:
+            return redirect(url_for('submitted'))
+    return render_template('report.html')
+
+@app.route('/submitted')
+def submitted():
+    render_template('submitted.html')
+
 def main():
-    if app.debug:
-        app.run()
+    if app.config['DEBUG']:
+        socketio.run(app)
     else:
-        app.run(host="0.0.0.0", port=7000)
+        socketio.run(app, host='0.0.0.0', port=8080)
 
 if __name__ == "__main__":
     main()

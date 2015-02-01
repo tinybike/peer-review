@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/foundation.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/peerrev.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/google-fonts.css') }}" />
-    <script src="{{ url_for('static', filename='js/vendor/modernizr.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/modernizr.js') }}"></script>    
     {% block page %}{% endblock %}
   </head>
   <body>
@@ -86,6 +86,8 @@
     <script src="{{ url_for('static', filename='js/foundation/foundation.topbar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.reveal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/peer-review.js') }}"></script>
     <script>
       $(document).foundation();
       var doc = document.documentElement;

@@ -10,7 +10,7 @@
             <h4>Progress report for {{ session.user }}</h4>
           </div>
         </div>
-        <form action="" method="POST" id="progress-report">
+        <form action="" method="POST" id="peer-review">
           <input type="hidden" id="test" name="test" value="test" />
 ​          <textarea id="report-text" name="report-text" rows="20" cols="70" placeholder="Enter your report here" value="{{ request.form.report }}" required></textarea>
           <button type="submit" class="button small" id="report">Report</button>
