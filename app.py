@@ -26,7 +26,7 @@ from decimal import *
 import bcrypt
 from flask import Flask, session, request, escape, flash, url_for, redirect, render_template, g, send_from_directory
 from flask.ext.login import login_user, logout_user, current_user, login_required, LoginManager
-from flask.ext.socketio import SocketIO
+from flask.ext.socketio import SocketIO, emit
 from flask.sessions import SessionInterface, SessionMixin
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 from werkzeug.datastructures import CallbackDict
@@ -378,16 +378,31 @@ def upload_file():
 # Reviewing #
 #############
 
-@socketio.on('get-dyff-balance', namespace='/socket.io/')
-def get_dyff_balance():
-    balance = None
-    if 'user' in session:
-        dyffs_query = "SELECT balance FROM dyffs WHERE username = %s"
-        with db.cursor_context() as cur:
-            cur.execute(dyffs_query, (session['user'],))
+@socketio.on('get-users', namespace='/socket.io/')
+def get_users():
+    users = []
+    if 'user_id' in session:
+        with cursor() as cur:
+            query = "SELECT username FROM users WHERE user_id <> %s"
+            cur.execute(query, (session['user_id'],))
             for row in cur:
-                balance = float(row[0])
-    emit('dyff-balance', {'balance': balance})
+                users.append(row[0])
+    emit('users', {'users': users})
+
+@socketio.on('get-report', namespace='/socket.io/')
+def get_report(req):
+    report = None
+    if 'user_id' in session:
+        with cursor() as cur:
+            userquery = "SELECT user_id FROM users WHERE user_id = %s"
+            cur.execute(userquery, (req['user_id'],))
+            for row in cur:
+                user_id = row[0]
+            reportquery = "SELECT report FROM reports WHERE user_id = %s"
+            cur.execute(reportquery, (user_id,))
+            for row in cur:
+                report = row[0]
+    emit('report', {'report': report})
 
 @app.route('/review', methods=['GET', 'POST'])
 def review():
