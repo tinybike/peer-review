@@ -31,13 +31,16 @@
             }
         });
         socket.on('report', function (res) {
+            window.report_displayed = true;
             var report_display = "<ul class='plain'>";
             report_display += "<li>Creator: <b>" + res.username + "</b></li>";
             report_display += "<li>Report ID: " + res.report_id + "</li>";
             report_display += "<li>" + res.timestamp + "</li>";
-            report_display += "<li>" + res.report + "</li>";
+            report_display += "<li class='report-body'>" + res.report + "</li>";
             report_display += "</ul>";
             $('#review-display').html(report_display);
+            $('#review-entry').show();
+            $('#report-id').val(res.report_id.toString());
         });
         return self;
     };
@@ -57,6 +60,10 @@
             socket.emit('get-all-reports');
             // socket.emit('get-users');
             // socket.emit('get-report', { 'username': '4' });
+        });
+        $('#review-form').submit(function (event) {
+            event.preventDefault();
+            
         });
         return self;
     };
