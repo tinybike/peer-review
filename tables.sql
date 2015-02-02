@@ -12,6 +12,7 @@ CREATE TABLE users (
 DROP TABLE IF EXISTS reviews;
 CREATE TABLE reviews (
     review_id bigserial PRIMARY KEY,
+    report_id bigint,
     reviewer varchar(20),
     reviewee varchar(20),
     rating numeric,

@@ -43,7 +43,8 @@
                 report_display += "<li>Creator: <b>" + res.username + "</b></li>";
                 report_display += "<li>Report ID: " + res.report_id + "</li>";
                 report_display += "<li>" + res.timestamp + "</li>";
-                report_display += "<li class='report-body'>" + res.report + "</li>";
+                report_display += "<li>" + res.review_mean + " (" + res.num_reviews + ")</li>";
+                report_display += "<li class='report-body'>" + res.report.replace(/(?:\r\n|\r|\n)/g, '<br />'); + "</li>";
                 report_display += "</ul>";
                 $('#review-display').html(report_display);
                 $('#review-entry').show();
@@ -71,9 +72,9 @@
             var data = {
                 rating: $('#rating').val(),
                 reviewee: $('#reviewee').val(),
-                comments: $('#comment-text').val()
+                comments: $('#comment-text').val(),
+                report_id: $('#report-id').val()
             }
-            console.log(data);
             socket.emit('submit-review', data);
             // $('#review-display').empty();
             $('#review-entry').hide();

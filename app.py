@@ -425,18 +425,40 @@ def submit_review(req):
     review_id = None
     if 'user_id' in session:
         with cursor() as cur:
-            query = (
-                "INSERT INTO reviews (reviewer, reviewee, rating, comments) "
-                "VALUES "
-                "(%(reviewer)s, %(reviewee)s, %(rating)s, %(comments)s) "
-                "RETURNING review_id"
-            )
-            params = {
-                'reviewer': session['user'],
-                'reviewee': req['reviewee'],
-                'rating': req['rating'],
-                'comments': req['comments'],
-            }
+            upsertquery = "SELECT count(*) FROM reviews WHERE report_id = %s"
+            cur.execute(upsertquery, (req['report_id'],))
+            for row in cur:
+                count = row[0]
+                if count > 0:
+                    query = (
+                        "UPDATE reviews "
+                        "SET rating = %(rating)s AND comments = %(comments)s AND "
+                        "reviewer = %(reviewer)s AND reviewee = %(reviewee)s "
+                        "WHERE report_id = %(report_id)s "
+                        "RETURNING review_id"
+                    )
+                    params = {
+                        'rating': req['rating'],
+                        'comments': req['comments'],
+                        'reviewer': session['user'],
+                        'reviewee': req['reviewee'],
+                        'report_id': req['report_id'],
+                    }
+                else:
+                    query = (
+                        "INSERT INTO reviews "
+                        "(report_id, reviewer, reviewee, rating, comments) "
+                        "VALUES "
+                        "(%(report_id)s, %(reviewer)s, %(reviewee)s, %(rating)s, %(comments)s) "
+                        "RETURNING review_id"
+                    )
+                    params = {
+                        'report_id': req['report_id'],
+                        'reviewer': session['user'],
+                        'reviewee': req['reviewee'],
+                        'rating': req['rating'],
+                        'comments': req['comments'],
+                    }
             cur.execute(query, params)
             for row in cur:
                 review_id = row[0]
@@ -444,7 +466,7 @@ def submit_review(req):
 
 @socketio.on('get-report', namespace='/socket.io/')
 def get_report(req):
-    report, timestamp = None, None
+    report, timestamp, mean_rating = None, None, None
     if 'user_id' in session:
         with cursor() as cur:
             query = "SELECT report, reporttime FROM reports WHERE report_id = %s"
@@ -452,11 +474,19 @@ def get_report(req):
             for row in cur:
                 report = row[0]
                 timestamp = row[1]
+            reviewquery = (
+                "SELECT rating FROM reviews WHERE report_id = %s "
+                "ORDER BY reviewtime LIMIT 1"
+            )
+            cur.execute(reviewquery, (req['report-id'],))
+            for row in cur:
+
         emit('report', {
             'report': report,
             'timestamp': timestamp,
             'report_id': req['report-id'],
             'username': req['username'],
+
         })
 
 @app.route('/report', methods=['GET', 'POST'])
@@ -476,7 +506,6 @@ def report():
             "RETURNING report_id"
         )
         cur.execute(query, params)
-        print(report_id)
         if report_id is not None:
             return redirect(url_for('submitted'))
     return render_template('report.html')
