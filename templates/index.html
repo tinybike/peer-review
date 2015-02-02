@@ -63,19 +63,21 @@
           <div class="row"><div id="review-display"></div></div>
             <div class="row">
               <div class="large-12 columns">
-              <div id="review-entry" style="display:none">
-                <form action="" method="POST" id="review-form">
-                  <div class="row">
-                    <input type="hidden" id="report-id" name="report-id" value="" />
-                    <input type="number" max="10" min="0" id="rating" name="rating" class="input-xlarge" value="{{ request.form.rating }}" placeholder="Rate this report (lowest: 0, highest: 10)" required autofocus />
-                  </div>
-                  <div class="row">
-                    <textarea id="comment-text" name="comments" rows="10" cols="10" placeholder="Enter your comments here" value="{{ request.form.comments }}"></textarea>
-                  </div>
-                  <div class="row">
-                    <button type="submit" class="button small right-space">Submit Review</button>
-                  </div>
-                </form>
+                <div id="review-entry" style="display:none">
+                  <form action="" method="POST" id="review-form">
+                    <div class="row">
+                      <input type="hidden" id="report-id" name="report-id" value="" />
+                      <input type="hidden" id="reviewee" name="reviewee" value="" />
+                      <input type="number" max="10" min="0" id="rating" name="rating" class="input-xlarge" placeholder="Rate this report (lowest: 0, highest: 10)" required autofocus />
+                    </div>
+                    <div class="row">
+                      <textarea id="comment-text" name="comments" rows="10" cols="10" placeholder="Enter your comments here" ></textarea>
+                    </div>
+                    <div class="row">
+                      <button type="submit" class="button small right-space">Submit Review</button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

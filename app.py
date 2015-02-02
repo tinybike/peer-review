@@ -420,6 +420,28 @@ def get_reports(req):
                 timestamps.append(row[1])
         emit('reports', {'reports': reports, 'timestamps': timestamps})
 
+@socketio.on('submit-review', namespace='/socket.io/')
+def submit_review(req):
+    review_id = None
+    if 'user_id' in session:
+        with cursor() as cur:
+            query = (
+                "INSERT INTO reviews (reviewer, reviewee, rating, comments) "
+                "VALUES "
+                "(%(reviewer)s, %(reviewee)s, %(rating)s, %(comments)s) "
+                "RETURNING review_id"
+            )
+            params = {
+                'reviewer': session['user'],
+                'reviewee': req['reviewee'],
+                'rating': req['rating'],
+                'comments': req['comments'],
+            }
+            cur.execute(query, params)
+            for row in cur:
+                review_id = row[0]
+        emit('review-submitted', {'review_id': review_id})
+
 @socketio.on('get-report', namespace='/socket.io/')
 def get_report(req):
     report, timestamp = None, None
@@ -436,12 +458,6 @@ def get_report(req):
             'report_id': req['report-id'],
             'username': req['username'],
         })
-
-@app.route('/review', methods=['GET', 'POST'])
-def review():
-    if request.method == 'GET':
-        return render_template('review.html')
-    return render_template('review.html')
 
 @app.route('/report', methods=['GET', 'POST'])
 def report():

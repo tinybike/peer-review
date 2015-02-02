@@ -12,11 +12,9 @@ CREATE TABLE users (
 DROP TABLE IF EXISTS reviews;
 CREATE TABLE reviews (
     review_id bigserial PRIMARY KEY,
-    reviewer_id bigint,
-    reviewee_id bigint,
     reviewer varchar(20),
     reviewee varchar(20),
-    stars numeric,
+    rating numeric,
     reviewtime timestamp DEFAULT statement_timestamp(),
     comments text
 );
