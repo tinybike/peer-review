@@ -518,7 +518,7 @@ def main():
     if app.config['DEBUG']:
         socketio.run(app)
     else:
-        socketio.run(app, host='0.0.0.0', port=8080)
+        socketio.run(app, host='0.0.0.0', port=9090)
 
 if __name__ == "__main__":
     main()
