@@ -4,9 +4,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>peer review</title>
+    <title>arbiter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/foundation.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/peerrev.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/arbiter.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/google-fonts.css') }}" />
     <script src="{{ url_for('static', filename='js/vendor/modernizr.js') }}"></script>
     <script>window.username = "{{ session.user }}";</script>
@@ -16,7 +16,7 @@
     <nav class="top-bar" data-topbar>
       <ul class="title-area">
         <li class="name">
-          <h1><a href="/">peer review</a></h1>
+          <h1><a href="/">arbiter</a></h1>
         </li>
         <li class="toggle-topbar menu-icon">
           <a href="#"><span>Menu</span></a>
@@ -34,24 +34,24 @@
           {% if g.user.is_authenticated() %}
             <li class="divider"></li>
             <li>
-              <a href="#" id="peer-review">Peer Review</a>
+              <a href="#" id="peer-review">peer review</a>
             </li>
             <li class="divider"></li>
             <li>
-              <a href="{{ url_for('report') }}">Progress Report</a>
+              <a href="{{ url_for('report') }}">progress report</a>
             </li>
             <li class="divider"></li>
             <li>
-              <a href="{{ url_for('logout') }}">Logout</a>
+              <a href="{{ url_for('logout') }}">logout</a>
             </li>
             <li class="divider"></li>
             <li>
               <a href="#" id="userblock">{{ session.user }}</a>
             </li>
           {% else %}
-            <li><a href="{{ url_for('register') }}">Register</a></li>
+            <li><a href="{{ url_for('register') }}">register</a></li>
             <li class="divider"></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('login') }}">login</a></li>
           {% endif %}
         </ul>
       </section>
@@ -109,7 +109,7 @@
     <script src="{{ url_for('static', filename='js/foundation/foundation.tab.js') }}"></script>
     <script src="{{ url_for('static', filename='js/foundation/foundation.reveal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/peer-review.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/arbiter.js') }}"></script>
     <script>
       $(document).foundation();
       var doc = document.documentElement;

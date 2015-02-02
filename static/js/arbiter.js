@@ -1,8 +1,8 @@
 (function ($) {
-    function PeerReview() {
+    function Arbiter() {
         var self = this;
     }
-    PeerReview.prototype.intake = function () {
+    Arbiter.prototype.intake = function () {
         var self = this;
         socket.on('all-reports', function (res) {
             if (res && res.reports) {
@@ -68,7 +68,7 @@
         });
         return self;
     };
-    PeerReview.prototype.exhaust = function () {
+    Arbiter.prototype.exhaust = function () {
         var self = this;
         $('#peer-review').click(function (event) {
             event.preventDefault();
@@ -101,10 +101,10 @@
         return self;
     };
     $(document).ready(function () {
-        var socket_url, pr;
+        var socket_url, arbiter;
         socket_url = window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/';
         window.socket = io.connect(socket_url);
-        pr = new PeerReview();
-        pr.intake().exhaust();
+        arbiter = new Arbiter();
+        arbiter.intake().exhaust();
     });
 })(jQuery);
