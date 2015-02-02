@@ -3,9 +3,7 @@ psycopg2
 markupsafe
 Jinja2
 requests
-py-bcrypt
 redis
-pyOpenSSL
 gunicorn
 Werkzeug>=0.9.4
 flask_sqlalchemy
