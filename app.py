@@ -425,16 +425,21 @@ def submit_review(req):
     review_id = None
     if 'user_id' in session:
         with cursor() as cur:
-            upsertquery = "SELECT count(*) FROM reviews WHERE report_id = %s"
-            cur.execute(upsertquery, (req['report_id'],))
+            upsertquery = (
+                "SELECT count(*) FROM reviews "
+                "WHERE report_id = %s "
+                "AND reviewer = %s"
+            )
+            cur.execute(upsertquery, (req['report_id'], session['user']))
             for row in cur:
                 count = row[0]
                 if count > 0:
                     query = (
                         "UPDATE reviews "
-                        "SET rating = %(rating)s AND comments = %(comments)s AND "
-                        "reviewer = %(reviewer)s AND reviewee = %(reviewee)s "
+                        "SET rating = %(rating)s, comments = %(comments)s "
                         "WHERE report_id = %(report_id)s "
+                        "AND reviewer = %(reviewer)s "
+                        "AND reviewee = %(reviewee)s "
                         "RETURNING review_id"
                     )
                     params = {
@@ -467,6 +472,7 @@ def submit_review(req):
 @socketio.on('get-report', namespace='/socket.io/')
 def get_report(req):
     report, timestamp, mean_rating = None, None, None
+    comments = []
     if 'user_id' in session:
         with cursor() as cur:
             query = "SELECT report, reporttime FROM reports WHERE report_id = %s"
@@ -475,18 +481,25 @@ def get_report(req):
                 report = row[0]
                 timestamp = row[1]
             reviewquery = (
-                "SELECT rating FROM reviews WHERE report_id = %s "
-                "ORDER BY reviewtime LIMIT 1"
+                "SELECT count(*), avg(rating) FROM reviews "
+                "WHERE report_id = %s"
             )
             cur.execute(reviewquery, (req['report-id'],))
             for row in cur:
-
+                num_ratings = row[0]
+                mean_rating = row[1]
+            commentsquery = "SELECT comments FROM reviews WHERE report_id = %s"
+            cur.execute(commentsquery, (req['report-id'],))
+            for row in cur:
+                comments.append(row[0])
         emit('report', {
             'report': report,
+            'num_ratings': num_ratings,
+            'mean_rating': mean_rating,
             'timestamp': timestamp,
             'report_id': req['report-id'],
             'username': req['username'],
-
+            'comments': comments,
         })
 
 @app.route('/report', methods=['GET', 'POST'])
@@ -506,13 +519,15 @@ def report():
             "RETURNING report_id"
         )
         cur.execute(query, params)
+        for row in cur:
+            report_id = row[0]
         if report_id is not None:
-            return redirect(url_for('submitted'))
+            return render_template('submitted.html')
     return render_template('report.html')
 
-@app.route('/submitted')
+@app.route('/submitted', methods=['GET'])
 def submitted():
-    render_template('submitted.html')
+    return render_template('submitted.html')
 
 def main():
     if app.config['DEBUG']:

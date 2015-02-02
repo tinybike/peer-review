@@ -1,1 +1,1 @@
-web: gunicorn bigtrees:app -b 0.0.0.0:$PORT --log-file -
+web: gunicorn --worker-class socketio.sgunicorn.GeventSocketIOWorker peerrev:app 

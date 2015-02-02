@@ -9,7 +9,7 @@
                 var reports = "<table>";
                 for (var i = 0, len = res.reports.length; i < len; ++i) {
                     reports += "<tr>";
-                    reports += "<td><a href='#' onclick=\"socket.emit('get-report', {'username': '" + res.reports[i].username + "', 'report-id': '" + res.reports[i].report_id + "'})\">" + res.reports[i].report_id + "</a></td>";
+                    // reports += "<td><a href='#' onclick=\"socket.emit('get-report', {'username': '" + res.reports[i].username + "', 'report-id': '" + res.reports[i].report_id + "'})\">" + res.reports[i].report_id + "</a></td>";
                     reports += "<td><a href='#' onclick=\"socket.emit('get-report', {'username': '" + res.reports[i].username + "', 'report-id': '" + res.reports[i].report_id + "'})\">" + res.reports[i].username + "</a></td>";
                     reports += "<td><a href='#' onclick=\"socket.emit('get-report', {'username': '" + res.reports[i].username + "', 'report-id': '" + res.reports[i].report_id + "'})\">" + res.reports[i].timestamp + "</td>";
                     reports += "</tr>";
@@ -37,16 +37,21 @@
             }
         });
         socket.on('report', function (res) {
+            var mean_rating = (res.mean_rating) ? res.mean_rating.toString() + " (" + res.num_ratings.toString() + " ratings)" : "unrated";
             if (res && res.report_id) {
-                window.report_displayed = true;
                 var report_display = "<ul class='plain'>";
                 report_display += "<li>Creator: <b>" + res.username + "</b></li>";
-                report_display += "<li>Report ID: " + res.report_id + "</li>";
+                // report_display += "<li>Report ID: " + res.report_id + "</li>";
                 report_display += "<li>" + res.timestamp + "</li>";
-                report_display += "<li>" + res.review_mean + " (" + res.num_reviews + ")</li>";
+                report_display += "<li>Average rating: <a href='#' onclick=\"$('#review-details').slideToggle()\">" + mean_rating + "</a><div id='review-details' style='display:none; background-color: #fff; border: 1px solid #ccc; margin: 5px; padding: 10px;' class='plain'></div></li>";
                 report_display += "<li class='report-body'>" + res.report.replace(/(?:\r\n|\r|\n)/g, '<br />'); + "</li>";
                 report_display += "</ul>";
                 $('#review-display').html(report_display);
+                $('#review-details').append($('<h5 />').text("Review comments:"));
+                $('#review-details').append($('<ol id="review-details-list" />'));
+                for (var i = 0, len = res.comments.length; i < len; ++i) {
+                    $('#review-details-list').append($('<li />').text(res.comments[i].replace(/(?:\r\n|\r|\n)/g)));
+                }
                 $('#review-entry').show();
                 $('#report-id').val(res.report_id.toString());
                 $('#reviewee').val(res.username);
@@ -54,7 +59,9 @@
         });
         socket.on('review-submitted', function (res) {
             if (res && res.review_id) {
-                $('#review-display').html("<center><h4>Your review has been submitted successfully.  Thank you!</h4></center>");
+                $('#review-display').html(
+                    "<center><h4>Your review has been submitted successfully.  Thank you!</h4></center>"
+                );
             }
         });
         return self;
@@ -63,9 +70,10 @@
         var self = this;
         $('#peer-review').click(function (event) {
             event.preventDefault();
+            $('#review-display').empty();
+            $('#report-block').hide();
+            $('#submitted').hide();
             socket.emit('get-all-reports');
-            // socket.emit('get-users');
-            // socket.emit('get-report', { 'username': '4' });
         });
         $('form#review-form').submit(function (event) {
             event.preventDefault();
@@ -76,7 +84,11 @@
                 report_id: $('#report-id').val()
             }
             socket.emit('submit-review', data);
-            // $('#review-display').empty();
+            $('#review-display').empty();
+            $('#report-id').val("");
+            $('#reviewee').val("");
+            $('#rating').val("");
+            $('#comment-text').val("");
             $('#review-entry').hide();
         });
         return self;
