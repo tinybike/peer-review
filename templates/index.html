@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/foundation.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/peerrev.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/google-fonts.css') }}" />
-    <script src="{{ url_for('static', filename='js/vendor/modernizr.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/vendor/modernizr.js') }}"></script>
+    <script>window.username = "{{ session.user }}";</script>
     {% block page %}{% endblock %}
   </head>
   <body>
@@ -45,7 +46,7 @@
             </li>
             <li class="divider"></li>
             <li>
-              <a href="#">{{ session.user }}</a>
+              <a href="#" id="userblock">{{ session.user }}</a>
             </li>
           {% else %}
             <li><a href="{{ url_for('register') }}">Register</a></li>

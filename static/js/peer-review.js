@@ -45,12 +45,14 @@
                 report_display += "<li>" + res.timestamp + "</li>";
                 report_display += "<li>Average rating: <a href='#' onclick=\"$('#review-details').slideToggle()\">" + mean_rating + "</a><div id='review-details' style='display:none; background-color: #fff; border: 1px solid #ccc; margin: 5px; padding: 10px;' class='plain'></div></li>";
                 report_display += "<li class='report-body'>" + res.report.replace(/(?:\r\n|\r|\n)/g, '<br />'); + "</li>";
+                // report_display += "<li class='report-body'>" + res.report + "</li>";
                 report_display += "</ul>";
                 $('#review-display').html(report_display);
                 $('#review-details').append($('<h5 />').text("Review comments:"));
                 $('#review-details').append($('<ol id="review-details-list" />'));
                 for (var i = 0, len = res.comments.length; i < len; ++i) {
                     $('#review-details-list').append($('<li />').text(res.comments[i].replace(/(?:\r\n|\r|\n)/g)));
+                    // $('#review-details-list').append($('<li />').html(res.comments[i]));
                 }
                 $('#review-entry').show();
                 $('#report-id').val(res.report_id.toString());
@@ -77,19 +79,24 @@
         });
         $('form#review-form').submit(function (event) {
             event.preventDefault();
-            var data = {
-                rating: $('#rating').val(),
-                reviewee: $('#reviewee').val(),
-                comments: $('#comment-text').val(),
-                report_id: $('#report-id').val()
+            var reviewee = $('#reviewee').val();
+            if (reviewee == window.username) {
+                alert("You cannot submit a review for yourself!");
+            } else {
+                var data = {
+                    rating: $('#rating').val(),
+                    reviewee: reviewee,
+                    comments: $('#comment-text').val(),
+                    report_id: $('#report-id').val()
+                }
+                socket.emit('submit-review', data);
+                $('#review-display').empty();
+                $('#report-id').val("");
+                $('#reviewee').val("");
+                $('#rating').val("");
+                $('#comment-text').val("");
+                $('#review-entry').hide();
             }
-            socket.emit('submit-review', data);
-            $('#review-display').empty();
-            $('#report-id').val("");
-            $('#reviewee').val("");
-            $('#rating').val("");
-            $('#comment-text').val("");
-            $('#review-entry').hide();
         });
         return self;
     };

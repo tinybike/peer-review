@@ -20,9 +20,10 @@ except:
 import random
 import base64
 import string
+import markdown
 from decimal import *
 import bcrypt
-from flask import Flask, session, request, escape, flash, url_for, redirect, render_template, g, send_from_directory
+from flask import Flask, session, request, escape, flash, url_for, redirect, render_template, g, send_from_directory, Markup
 from flask.ext.login import login_user, logout_user, current_user, login_required, LoginManager
 from flask.ext.socketio import SocketIO, emit
 from flask.sessions import SessionInterface, SessionMixin
@@ -199,7 +200,7 @@ guard = Guard()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("index.html")
+    return render_template("index.html", **locals())
 
 ############
 # Register #
@@ -331,34 +332,6 @@ def load_user(user_id):
             user = User(res['user_id'], res['username'], res['email'])
     return user
 
-##########
-# Upload #
-##########
-
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and guard.allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form action="" method=post enctype=multipart/form-data>
-      <p><input type=file name=file>
-         <input type=submit value=Upload>
-    </form>
-    '''
-
 #############
 # Reviewing #
 #############
@@ -379,7 +352,10 @@ def get_all_reports():
     reports = []
     if 'user_id' in session:
         with cursor(True) as cur:
-            query = "SELECT report_id, username, report, reporttime FROM reports WHERE user_id <> %s ORDER BY reporttime DESC"
+            query = (
+                "SELECT report_id, username, report, reporttime FROM reports "
+                "ORDER BY reporttime DESC"
+            )
             cur.execute(query, (session['user_id'],))
             for row in cur:
                 reports.append({
@@ -463,6 +439,7 @@ def get_report(req):
             query = "SELECT report, reporttime FROM reports WHERE report_id = %s"
             cur.execute(query, (req['report-id'],))
             for row in cur:
+                # report = markdown.markdown(row[0])
                 report = row[0]
                 timestamp = row[1]
             reviewquery = (
@@ -476,8 +453,10 @@ def get_report(req):
             commentsquery = "SELECT comments FROM reviews WHERE report_id = %s"
             cur.execute(commentsquery, (req['report-id'],))
             for row in cur:
+                # comments.append(Markup(markdown.markdown(row[0])))
                 comments.append(row[0])
         emit('report', {
+            # 'report': Markup(report),
             'report': report,
             'num_ratings': num_ratings,
             'mean_rating': mean_rating,
