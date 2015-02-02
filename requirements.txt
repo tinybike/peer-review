@@ -4,6 +4,7 @@ markupsafe
 Jinja2
 requests
 redis
+bcrypt
 gunicorn
 Werkzeug>=0.9.4
 flask_sqlalchemy
@@ -18,9 +19,6 @@ gevent-websocket>=0.9.2
 itsdangerous>=0.23
 ujson>=1.33
 websocket-client
-pycrypto
 bunch
-hashlib
-Crypto
 Flask-Security
 Flask-Social

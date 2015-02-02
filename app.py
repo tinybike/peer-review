@@ -20,8 +20,6 @@ except:
 import random
 import base64
 import string
-import hashlib
-from Crypto.Cipher import AES
 from decimal import *
 import bcrypt
 from flask import Flask, session, request, escape, flash, url_for, redirect, render_template, g, send_from_directory
@@ -169,18 +167,6 @@ def cursor(cursor_factory=False):
 class Guard(object):
 
     MISMATCH_ERROR = TypeError("inputs must be both unicode or both bytes")
-
-    def AES_cipher(self, cleartext, password):
-        key = hashlib.sha256(password).digest()
-        iv = ''.join(chr(random.randint(0, 0xFF)) for i in range(16))
-        encryptor = AES.new(key, AES.MODE_CBC, IV=iv)
-        ciphertext = encryptor.encrypt(cleartext + 'XXX')
-        return ciphertext, iv
-
-    def AES_clear(self, ciphertext, password, iv):
-        key = hashlib.sha256(password).digest()
-        decryptor = AES.new(key, AES.MODE_CBC, IV=iv)
-        return decryptor.decrypt(ciphertext)[:-3]
 
     def bcrypt_digest(self, password):
         return bcrypt.hashpw(password, bcrypt.gensalt())
