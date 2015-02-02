@@ -380,29 +380,62 @@ def upload_file():
 
 @socketio.on('get-users', namespace='/socket.io/')
 def get_users():
-    users = []
+    users, report_ids = [], []
     if 'user_id' in session:
         with cursor() as cur:
             query = "SELECT username FROM users WHERE user_id <> %s"
             cur.execute(query, (session['user_id'],))
             for row in cur:
                 users.append(row[0])
-    emit('users', {'users': users})
+        emit('users', {'users': users, 'report_id': report_ids})
 
-@socketio.on('get-report', namespace='/socket.io/')
-def get_report(req):
-    report = None
+@socketio.on('get-all-reports', namespace='/socket.io/')
+def get_all_reports():
+    reports = []
+    if 'user_id' in session:
+        with cursor(True) as cur:
+            query = "SELECT report_id, username, report, reporttime FROM reports WHERE user_id <> %s ORDER BY reporttime DESC"
+            cur.execute(query, (session['user_id'],))
+            for row in cur:
+                reports.append({
+                    'report_id': row['report_id'],
+                    'username': row['username'],
+                    'timestamp': row['reporttime'],
+                })
+        emit('all-reports', {'reports': reports})
+
+@socketio.on('get-reports', namespace='/socket.io/')
+def get_reports(req):
+    reports, timestamps = [], []
     if 'user_id' in session:
         with cursor() as cur:
             userquery = "SELECT user_id FROM users WHERE user_id = %s"
-            cur.execute(userquery, (req['user_id'],))
+            cur.execute(userquery, (req['username'],))
             for row in cur:
                 user_id = row[0]
-            reportquery = "SELECT report FROM reports WHERE user_id = %s"
-            cur.execute(reportquery, (user_id,))
+            query = "SELECT report, reporttime from reports WHERE user_id = %s"
+            cur.execute(query, (user_id,))
+            for row in cur:
+                reports.append(row[0])
+                timestamps.append(row[1])
+        emit('reports', {'reports': reports, 'timestamps': timestamps})
+
+@socketio.on('get-report', namespace='/socket.io/')
+def get_report(req):
+    report, timestamp = None, None
+    if 'user_id' in session:
+        with cursor() as cur:
+            query = "SELECT report, reporttime FROM reports WHERE report_id = %s"
+            cur.execute(query, (req['report-id'],))
             for row in cur:
                 report = row[0]
-    emit('report', {'report': report})
+                timestamp = row[1]
+        emit('report', {
+            'report': report,
+            'timestamp': timestamp,
+            'report_id': req['report-id'],
+            'username': req['username'],
+        })
 
 @app.route('/review', methods=['GET', 'POST'])
 def review():
@@ -418,11 +451,12 @@ def report():
     with cursor() as cur:
         params = {
             'user_id': session['user_id'],
+            'username': session['user'],
             'report': request.form['report-text'],
         }
         query = (
-            "INSERT INTO reports (user_id, report) VALUES "
-            "(%(user_id)s, %(report)s) "
+            "INSERT INTO reports (user_id, username, report) VALUES "
+            "(%(user_id)s, %(username)s, %(report)s) "
             "RETURNING report_id"
         )
         cur.execute(query, params)

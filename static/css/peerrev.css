@@ -16,3 +16,6 @@ html, body {
     text-align: center;
     margin: 0 auto;
 }
+.plain {
+    list-style-type: none;
+}
